@@ -1,0 +1,51 @@
+#include <stdio.h>
+
+int main(){
+	int t,n,i,j,min,f;
+	int b1[]={'a','e','g','k','m','q'};
+	int b2[]={'C','G','I','O','S','Y'};
+	scanf("%d",&t);
+	for(j=1;j<=t;j++)
+	{
+	    scanf("%d",&n);
+	    char a[n];
+	    scanf("%s",a);
+	    i=0;
+	    while(a[i]!='\0')
+	    {
+	        min=0;
+	      if(a[i]<=93)
+	      {
+	          min=abs(b2[0]-a[i]);
+	          f=0;
+	         for(auto k=1;k<6;k++)
+	          {
+	              if(abs(b2[k]-a[i])<min)
+	              {
+	               min=abs(b2[k]-a[i]);
+	               f=k;
+	              }
+	          }
+	          printf("%c",b2[f]);
+	      }
+	      else if(a[i]>93)
+	      {
+	          min=abs(b1[0]-a[i]);
+	          f=0;
+	         for(auto k=1;k<6;k++)
+	          {
+	              if(abs(b1[k]-a[i])<min)
+	              {
+	               min=abs(b1[k]-a[i]);
+	               f=k;
+	              }
+	          }
+	          printf("%c",b1[f]);
+	      }
+	       i++;
+	    }
+	            printf("\n");
+	    } 
+      return 0;
+}
+  	
