@@ -1,0 +1,266 @@
+#include<iostream>
+#include <iomanip>
+#include<vector>
+#include<stdio.h>
+#include<cstring>
+#include<fstream>
+#include<algorithm>
+using namespace std;
+
+class users
+{
+  public:
+  char name[20],email[20],pass[20];
+  int age;
+
+  bool operator==(const string email) const
+  {
+    if(string(this->email).compare(email) == 0)
+      return true;
+    else
+      return false;
+  }
+};
+
+class followers
+{
+  public:
+  char user_id[20],friend_id[20];
+};
+
+
+vector<users> accounts;
+vector<users>::iterator iter;
+vector<followers> friends;
+vector<followers>::iterator iter_follow;
+void homePage(vector<users>::iterator );
+
+void getAccountDetails()
+{
+   users usr;
+   ifstream fin;
+   fin.open("users.txt");
+   while( fin.read( (char *) & usr, sizeof(class users) ) )
+      accounts.push_back(usr);
+   fin.close();
+}
+
+void getFollowerDetails()
+{
+   followers follow;
+   ifstream fin;
+   fin.open("FOLLOWERS.txt");
+   while( fin.read( (char *) & follow, sizeof(class followers) ) )
+      friends.push_back(follow);
+   fin.close();
+
+}
+
+
+void follow(vector<users>::iterator itr)
+{
+   friends.clear();
+   getFollowerDetails();
+   char email[20];
+   char ch;
+   bool added=0;
+   cout<<"Enter email of friend: ";
+   cin>>email;
+   while( ( (iter=find(accounts.begin(),accounts.end(),email))==accounts.end() ) || ( strcmp(itr->email,email)==0 ) )
+   {
+     cout<<"Invalid Email\n";
+     cout<<"Enter Email: ";
+     cin>>email;
+   }
+   for(iter_follow=friends.begin();iter_follow!=friends.end();iter_follow++)
+   {
+      if(strcmp(iter_follow->user_id,itr->email)==0 && strcmp(iter_follow->friend_id,email)==0)
+      {
+         added=1;
+         break;
+      }
+   }
+   if(added==0)
+   {
+     cout<<"Wanna follow "<<iter->name<<"?(y/n): ";
+     cin>>ch;
+     if(ch=='y' ||ch=='Y')
+     {
+       followers follow;
+       strcpy(follow.user_id,itr->email);
+       strcpy(follow.friend_id,email);
+       ofstream fout("FOLLOWERS.txt",ios::app);
+       fout.write((char *)& follow,sizeof(class followers));
+       fout.close();
+     }
+   }
+   else
+     cout<<"\nAlready addes as friend\n";
+   cout<<"\n";
+   homePage(itr);
+}
+
+void unFollow(vector<users>::iterator itr)
+{
+   friends.clear();
+   getFollowerDetails();
+   followers follow;
+   char email[20];
+   bool deleted=0;
+   cout<<"Enter email to unfollow:";
+   cin>>email;
+   for(iter_follow=friends.begin();iter_follow!=friends.end();iter_follow++)
+   {
+      if(strcmp(iter_follow->user_id,itr->email)==0 && strcmp(iter_follow->friend_id,email)==0)
+      {
+        friends.erase(iter_follow,iter_follow+1);
+        ofstream fout("FOLLOWERS.txt");
+        for(int i=0;i<friends.size();i++)
+        {
+          follow=friends[i];
+          fout.write((char *)& follow,sizeof(class followers));
+        }
+        fout.close();
+        deleted=1;
+        break;
+      }
+   }
+   if(deleted==1)
+     cout<<"\nSuccessfully Deleted\n\n";
+   else
+     cout<<"\nFriend does not exist\n\n";
+   homePage(itr);
+}
+
+void viewFollowers(vector<users>::iterator itr)
+{
+   int ch;
+   friends.clear();
+   getFollowerDetails();
+   cout<<"1. View Followings \n2. View Followers \nChoice: ";
+   cin>>ch;
+   cout<<endl<<left<<setw(20)<<"Name"<<left<<setw(20)<<"Email"<<left<<setw(5)<<"Age"<<endl;
+   for(iter_follow=friends.begin();iter_follow!=friends.end();iter_follow++)
+      if(ch==1)
+      {
+        if(strcmp(iter_follow->user_id,itr->email)==0)
+        {
+          iter=find(accounts.begin(),accounts.end(),iter_follow->friend_id);
+          cout<<setw(20)<<iter->name<<setw(20)<<iter->email<<setw(5)<<iter->age<<endl;
+        }
+      }
+      else if(ch==2)
+      {
+        if(strcmp(iter_follow->friend_id,itr->email)==0)
+        {
+          iter=find(accounts.begin(),accounts.end(),iter_follow->user_id);
+          cout<<setw(20)<<iter->name<<setw(20)<<iter->email<<setw(5)<<iter->age<<endl;
+        }
+      }
+       else{
+         cout<<"Wrong choice\n";
+       }
+   cout<<"\n";
+   homePage(itr);
+}
+
+void homePage(vector<users>::iterator itr)
+{
+   int ch;
+   cout<<"1. Add Friend\n2.Remove Friend\n3.View Friend\n4.Log out\nYour Choice: ";
+   cin>>ch;
+   switch(ch)
+   {
+     case 1: follow(itr);
+     		break;
+     case 2: unFollow(itr);
+     		break;
+     case 3: viewFollowers(itr);
+     		break;
+     case 4: break;
+     Default: exit(0);
+
+   }
+
+}
+
+void login()
+{
+   system("clear");
+   accounts.clear();  //clears the vector
+   getAccountDetails(); //to store all the users details from file to vector
+   string email,pass;
+   cout<<"Enter Email: ";
+   cin>>email;
+   cout<<"Enter Password: ";
+   cin>>pass;
+   iter=find(accounts.begin(),accounts.end(),email);
+   if( string(iter->email).compare(email) == 0 && string(iter->pass).compare(pass) == 0)
+   {
+     system("clear");
+     cout<<"welcome "<<iter->name<<endl<<endl;
+     homePage(iter);
+   }
+   else
+     cout<<"\nInvalid Credentials\n";
+}
+
+
+
+void reg()
+{
+   char ch;
+   users usr;
+   accounts.clear();  //clears the vector
+   getAccountDetails(); //to store all the users details from file to vector
+   system("clear");
+   cout<<"Enter Name: ";
+   cin>>usr.name;
+   cout<<"Enter Age: ";
+   cin>>usr.age;
+   cout<<"Enter Email: ";
+   cin>>usr.email;
+
+   while( (iter=find(accounts.begin(),accounts.end(),usr.email) )  != accounts.end()  )
+   {
+     cout<<"Email Already Exists\n";
+     cout<<"Enter Email: ";
+     cin>>usr.email;
+   }
+   cout<< "Enter Passsword: ";
+   cin>>usr.pass;
+   ofstream fout("users.txt",ios_base::app);
+   fout.write((char *)&usr,sizeof(class users));
+   fout.close();
+   accounts.push_back(usr);
+
+   cout<<"\nAccount Successfully added. Wanna LOGIN?(y/n): ";
+   cin>>ch;
+   if(ch=='y'|| ch=='Y')
+     login();
+   else
+     system("clear");
+
+}
+
+int main()
+{
+    int ch;
+    getAccountDetails();
+    while(1)
+    {
+      cout<<"\tSocial Network User Account Management System\n\n";
+      cout<< "1. Login \n2.Register \nChoice: ";
+      cin>>ch;
+      switch(ch)
+      {
+        case 1: login();
+                break;
+        case 2: reg();
+            	break;
+        default :cout<<"OOPS WRONG CHOICE\n"<<endl;
+      }
+    }
+
+    return 0;
+}
